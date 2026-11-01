@@ -1,0 +1,250 @@
+{
+  "saved_baseline": "results-65536-mtp5-q8_0-limit22-iq3-kapitsa.json",
+  "baseline_rerun": false,
+  "screening_only": true,
+  "trials": [
+    {
+      "name": "mma1",
+      "context": 65536,
+      "file": "fast-first-65536.json",
+      "passed": true,
+      "peak_rss_bytes": 18663014400,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 7.09230129947384,
+          "prompt_ms": 1071.13,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": -2.8690449118859984
+        },
+        "short_code": {
+          "tokens_per_second": 12.510828451256891,
+          "prompt_ms": 1208.995,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": -11.68520595852568
+        }
+      },
+      "confound": "Overlapped head-model creation/hash work through 19:12:53 Bangkok; discard for selection."
+    },
+    {
+      "name": "mma7",
+      "context": 65536,
+      "file": "fast-first-65536.json",
+      "passed": true,
+      "peak_rss_bytes": 19224920064,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 3.6975422864558407,
+          "prompt_ms": 1251.169,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": -49.36117367309413
+        },
+        "short_code": {
+          "tokens_per_second": 6.959621302829387,
+          "prompt_ms": 1250.825,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": -50.87155703871191
+        }
+      },
+      "confound": "Overlapped head-model creation/hash work through 19:12:53 Bangkok; discard for selection."
+    },
+    {
+      "name": "batch256",
+      "context": 65536,
+      "file": "fast-first-65536.json",
+      "passed": true,
+      "peak_rss_bytes": 20486045696,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 7.584494259934989,
+          "prompt_ms": 1071.351,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": 3.871668760386271
+        },
+        "short_code": {
+          "tokens_per_second": 14.14251336281427,
+          "prompt_ms": 1071.526,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": -0.16703052624293946
+        },
+        "long_prose": {
+          "tokens_per_second": 7.584889686162814,
+          "prompt_ms": 64593.614,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 8.006870063079807,
+          "delta_percent_unpaired": -5.270228860872517
+        },
+        "long_code": {
+          "tokens_per_second": 9.948411725595996,
+          "prompt_ms": 1146.507,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 10.535462088139676,
+          "delta_percent_unpaired": -5.5721368235433495
+        }
+      }
+    },
+    {
+      "name": "bulk",
+      "context": 65536,
+      "file": "fast-first-65536.json",
+      "passed": true,
+      "peak_rss_bytes": 19321618432,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 7.349308047175131,
+          "prompt_ms": 1081.583,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": 0.6507309428380958
+        },
+        "short_code": {
+          "tokens_per_second": 13.620454424239018,
+          "prompt_ms": 1107.36,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": -3.852280293467758
+        }
+      }
+    },
+    {
+      "name": "q8head",
+      "context": 65536,
+      "file": "fast-head-65536.json",
+      "passed": true,
+      "peak_rss_bytes": 19065470976,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/tasks/iq3-head-experiment/qwen3.8-27b-iq3-mtp-q8-head.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 9.561479356111864,
+          "prompt_ms": 1058.526,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": 30.947006154875247
+        },
+        "short_code": {
+          "tokens_per_second": 17.124121036892568,
+          "prompt_ms": 1060.074,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": 20.88034204981135
+        },
+        "long_prose": {
+          "tokens_per_second": 9.250029064565009,
+          "prompt_ms": 67380.953,
+          "output_matches_saved": false,
+          "saved_tokens_per_second": 8.006870063079807,
+          "delta_percent_unpaired": 15.526154311126984
+        },
+        "long_code": {
+          "tokens_per_second": 11.81958241042094,
+          "prompt_ms": 1116.888,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 10.535462088139676,
+          "delta_percent_unpaired": 12.18855244827719
+        }
+      }
+    },
+    {
+      "name": "q8head",
+      "context": 131072,
+      "file": "fast-head128-131072.json",
+      "passed": true,
+      "peak_rss_bytes": 21126971392,
+      "watchdog_events": [],
+      "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/tasks/iq3-head-experiment/qwen3.8-27b-iq3-mtp-q8-head.gguf",
+      "cases": {
+        "short_prose": {
+          "tokens_per_second": 9.508497744434202,
+          "prompt_ms": 1064.711,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 7.301793020608042,
+          "delta_percent_unpaired": null
+        },
+        "short_code": {
+          "tokens_per_second": 17.55820127871759,
+          "prompt_ms": 1058.834,
+          "output_matches_saved": true,
+          "saved_tokens_per_second": 14.16617519979899,
+          "delta_percent_unpaired": null
+        }
+      },
+      "general_thinking": {
+        "cache_n": 0,
+        "prompt_n": 125,
+        "prompt_ms": 1973.742,
+        "prompt_per_token_ms": 15.789935999999999,
+        "prompt_per_second": 63.33147898762857,
+        "predicted_n": 128,
+        "predicted_ms": 8110.091,
+        "predicted_per_token_ms": 63.85898425196851,
+        "predicted_per_second": 15.659503697307466,
+        "draft_n": 165,
+        "draft_n_accepted": 94
+      }
+    }
+  ],
+  "runtime_manifests": {
+    "experimental": {
+      "libggml-base.0.28.0.dylib": "ac840f18b3bdbf8497e7eb2033e0f314bdd087aa78278dd878a9d3b0b6924d5e",
+      "libggml-blas.0.28.0.dylib": "a9e78dad235ac00ab27af29dce70380729cd23d3855b32193ffd28f5ee1bcd87",
+      "libggml-cpu.0.28.0.dylib": "7a53567c28a2fe3be5a1a9c8f2b7bdd495b81ce6346a02ba0c73e6dd4c8bc45e",
+      "libggml-metal.0.28.0.dylib": "1d5c0a47596d69d0c86353fc2a81615a9867782158fc5baabd94925c74ff7a0e",
+      "libggml.0.28.0.dylib": "6b32c481a7d7b32801013369a49322dcc5b1e4ee50a326f44031b7d16e632589",
+      "libllama-cli-impl.dylib": "bf8a69d2d8dff792e0e0fc69d32037523d4a0e17f18633450d7b2708ee3298bd",
+      "libllama-common.0.8.0.dylib": "f15fb4cb597a08dbaef37036069d59067d292ac362c4f176ffbb5f4157672d84",
+      "libllama-fit-params-impl.dylib": "3f4fcf8e35a0d5a65f92d232b2bbf6841ac2de34d25668e31d753c016a0f4f11",
+      "libllama-server-impl.dylib": "5da994d3776cc83d37f74d9c5bda4dbd73660578b3fd3773d67d9643313aa26d",
+      "libllama.0.8.0.dylib": "a26423b756d357aaa80b06db37dd688ed3e98a1f1fd46e02b5bb9531c6091a2f",
+      "libmtmd.0.8.0.dylib": "a5a235ceaecd7f5fe275f5781ae9e0bb06ff586ada18f9083c232ff5180eee9a",
+      "llama-server": "df34f11c8b15876f61108c723737f782b36009eea73d6d6791542140a8cd58e8"
+    },
+    "installed": {
+      "libggml-base.0.28.0.dylib": "874512ef24f6ee01cda1773699d0641f3d17ea520c6e015b0de0601e5ab312d6",
+      "libggml-base.0.dylib": "874512ef24f6ee01cda1773699d0641f3d17ea520c6e015b0de0601e5ab312d6",
+      "libggml-base.dylib": "874512ef24f6ee01cda1773699d0641f3d17ea520c6e015b0de0601e5ab312d6",
+      "libggml-blas.0.28.0.dylib": "a9e78dad235ac00ab27af29dce70380729cd23d3855b32193ffd28f5ee1bcd87",
+      "libggml-blas.0.dylib": "a9e78dad235ac00ab27af29dce70380729cd23d3855b32193ffd28f5ee1bcd87",
+      "libggml-blas.dylib": "a9e78dad235ac00ab27af29dce70380729cd23d3855b32193ffd28f5ee1bcd87",
+      "libggml-cpu.0.28.0.dylib": "7a53567c28a2fe3be5a1a9c8f2b7bdd495b81ce6346a02ba0c73e6dd4c8bc45e",
+      "libggml-cpu.0.dylib": "7a53567c28a2fe3be5a1a9c8f2b7bdd495b81ce6346a02ba0c73e6dd4c8bc45e",
+      "libggml-cpu.dylib": "7a53567c28a2fe3be5a1a9c8f2b7bdd495b81ce6346a02ba0c73e6dd4c8bc45e",
+      "libggml-metal.0.28.0.dylib": "c52070d2f4276dfc0ddf3e15545bd31f8f9970ceefa30a36ad34f3caa169dc90",
+      "libggml-metal.0.dylib": "c52070d2f4276dfc0ddf3e15545bd31f8f9970ceefa30a36ad34f3caa169dc90",
+      "libggml-metal.dylib": "c52070d2f4276dfc0ddf3e15545bd31f8f9970ceefa30a36ad34f3caa169dc90",
+      "libggml.0.28.0.dylib": "6b32c481a7d7b32801013369a49322dcc5b1e4ee50a326f44031b7d16e632589",
+      "libggml.0.dylib": "6b32c481a7d7b32801013369a49322dcc5b1e4ee50a326f44031b7d16e632589",
+      "libggml.dylib": "6b32c481a7d7b32801013369a49322dcc5b1e4ee50a326f44031b7d16e632589",
+      "libllama-cli-impl.dylib": "bf8a69d2d8dff792e0e0fc69d32037523d4a0e17f18633450d7b2708ee3298bd",
+      "libllama-common.0.8.0.dylib": "ccdef3ad75fee6a43893ff9bb6328f6bdaf04f5632c0a35166fc007fbe941dd8",
+      "libllama-common.0.dylib": "ccdef3ad75fee6a43893ff9bb6328f6bdaf04f5632c0a35166fc007fbe941dd8",
+      "libllama-common.dylib": "ccdef3ad75fee6a43893ff9bb6328f6bdaf04f5632c0a35166fc007fbe941dd8",
+      "libllama-fit-params-impl.dylib": "3f4fcf8e35a0d5a65f92d232b2bbf6841ac2de34d25668e31d753c016a0f4f11",
+      "libllama-server-impl.dylib": "5da994d3776cc83d37f74d9c5bda4dbd73660578b3fd3773d67d9643313aa26d",
+      "libllama.0.8.0.dylib": "a26423b756d357aaa80b06db37dd688ed3e98a1f1fd46e02b5bb9531c6091a2f",
+      "libllama.0.dylib": "a26423b756d357aaa80b06db37dd688ed3e98a1f1fd46e02b5bb9531c6091a2f",
+      "libllama.dylib": "a26423b756d357aaa80b06db37dd688ed3e98a1f1fd46e02b5bb9531c6091a2f",
+      "libmtmd.0.8.0.dylib": "a5a235ceaecd7f5fe275f5781ae9e0bb06ff586ada18f9083c232ff5180eee9a",
+      "libmtmd.0.dylib": "a5a235ceaecd7f5fe275f5781ae9e0bb06ff586ada18f9083c232ff5180eee9a",
+      "libmtmd.dylib": "a5a235ceaecd7f5fe275f5781ae9e0bb06ff586ada18f9083c232ff5180eee9a",
+      "llama-server": "df34f11c8b15876f61108c723737f782b36009eea73d6d6791542140a8cd58e8"
+    }
+  },
+  "restored_props": {
+    "model_alias": "qwen3.8-27b-local",
+    "context": 131072
+  }
+}

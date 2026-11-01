@@ -1,0 +1,137 @@
+{
+  "config": {
+    "runtime": "/Users/thawee.p/.local/lib/llama-local/current",
+    "model": "/Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp-q8head.gguf",
+    "alias": "qwen3.8-27b-local",
+    "plist": "/Users/thawee.p/Library/LaunchAgents/local.llama.qwen27b.plist",
+    "controller": "/Users/thawee.p/.local/lib/llama-local/controller.py",
+    "python": "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/bin/python3.15",
+    "state": "/Users/thawee.p/.local/state/llama-local",
+    "speculative": "draft-mtp"
+  },
+  "pid": "12166",
+  "argv": "/Users/thawee.p/.local/lib/llama-local/current/llama-server --model /Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq3-mtp-q8head.gguf --alias qwen3.8-27b-local --offline --host 127.0.0.1 --port 8000 -np 1 -c 131072 -ngl 99 -t 5 -tb 5 -b 64 -ub 64 -fa on -ctk q8_0 -ctv q8_0 --reasoning on --temp 1.0 --top-p 0.95 --top-k 20 --min-p 0 --presence-penalty 0 --repeat-penalty 1.0 --fit off --spec-type draft-mtp --spec-draft-n-max 5 --spec-draft-type-k q8_0 --spec-draft-type-v q8_0",
+  "context": 131072,
+  "models": {
+    "models": [
+      {
+        "name": "qwen3.8-27b-local",
+        "model": "qwen3.8-27b-local",
+        "modified_at": "",
+        "size": "",
+        "digest": "",
+        "type": "model",
+        "description": "",
+        "tags": [
+          ""
+        ],
+        "capabilities": [
+          "completion"
+        ],
+        "parameters": "",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "",
+          "families": [
+            ""
+          ],
+          "parameter_size": "",
+          "quantization_level": ""
+        }
+      }
+    ],
+    "object": "list",
+    "data": [
+      {
+        "id": "qwen3.8-27b-local",
+        "aliases": [
+          "qwen3.8-27b-local"
+        ],
+        "tags": [],
+        "object": "model",
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        },
+        "created": 1793536368,
+        "owned_by": "llamacpp",
+        "meta": {
+          "vocab_type": 2,
+          "n_vocab": 248320,
+          "n_ctx": 131072,
+          "n_ctx_train": 262144,
+          "n_embd": 5120,
+          "n_params": 27320697856,
+          "size": 13329117184,
+          "ftype": "IQ3_S mix - 3.66 bpw"
+        }
+      }
+    ]
+  },
+  "completion": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "42"
+        }
+      }
+    ],
+    "created": 1793536369,
+    "model": "qwen3.8-27b-local",
+    "system_fingerprint": "b12030-a91eab67d",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3,
+      "prompt_tokens": 27,
+      "total_tokens": 30,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "id": "chatcmpl-oRTpulMO5LVxz1y2lmmIZvcGgrG41cTv",
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 27,
+      "prompt_ms": 740.446,
+      "prompt_per_token_ms": 27.42392592592593,
+      "prompt_per_second": 36.46450922822191,
+      "predicted_n": 3,
+      "predicted_ms": 254.652,
+      "predicted_per_token_ms": 127.326,
+      "predicted_per_second": 7.8538554576441575,
+      "draft_n": 5,
+      "draft_n_accepted": 1
+    }
+  },
+  "pi_provider": {
+    "baseUrl": "http://127.0.0.1:8000/v1",
+    "api": "openai-completions",
+    "apiKey": "local",
+    "models": [
+      {
+        "id": "qwen3.8-27b-local",
+        "name": "Local Qwen 27B",
+        "contextWindow": 131072,
+        "maxTokens": 8192,
+        "reasoning": true,
+        "input": [
+          "text"
+        ],
+        "cost": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        }
+      }
+    ]
+  }
+}

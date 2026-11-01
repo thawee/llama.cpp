@@ -338,6 +338,8 @@ struct common_params_speculative_draft {
 
     bool probabilistic = false; // sample the draft and verify by rejection, instead of argmax and match
 
+    bool adaptive = false; // pause DFlash2 after repeated fully rejected drafts
+
     common_params_model mparams;
 
     llama_context * ctx_tgt = nullptr;
@@ -398,6 +400,20 @@ struct common_params_speculative {
 
     bool has_synth() const {
         return synth_len != -1.0 || !synth_rates.empty();
+    }
+
+    bool is_ngram_simple() const {
+        bool enabled = false;
+        for (const auto type : types) {
+            if (type == COMMON_SPECULATIVE_TYPE_NONE) {
+                continue;
+            }
+            if (type != COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE) {
+                return false;
+            }
+            enabled = true;
+        }
+        return enabled;
     }
 
     uint32_t need_n_rs_seq() const {
@@ -483,6 +499,7 @@ struct common_params {
     int32_t main_gpu           = 0;     // the GPU that is used for scratch and small tensors
     float   tensor_split[128]  = {0};   // how split tensors should be distributed across GPUs
     bool    fit_params         = true;  // whether to fit unset model/context parameters to free device memory
+    size_t  memory_budget      = 0;     // estimated inference buffer budget in bytes, 0 disables
     bool    fit_params_print   = false; // print the estimated required memory to run the model
     int32_t fit_params_min_ctx = 4096;  // minimum context size to set when trying to reduce memory use
 

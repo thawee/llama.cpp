@@ -6,6 +6,7 @@
 #include "ggml-backend-impl.h"
 
 #include <vector>
+#include <cstdlib>
 
 // must stay in sync with the kernel_fwht_<type>_<N> templates in misc.metal. Widths up to
 // 512 run on the simdgroup kernel and need no threadgroup memory. The wider ones allocate
@@ -119,6 +120,18 @@ static bool ggml_metal_mul_mat_mma_type_ok(const struct ggml_tensor * op) {
 
 // the fewest src1 rows at which the few-row MMA kernels beat the mat-vec kernels (measured on an M3 Ultra)
 static int64_t ggml_metal_mul_mv_mma_rows_min(enum ggml_type type) {
+    const char * name = type == GGML_TYPE_IQ3_S ? "GGML_METAL_MMA_IQ3_MIN_ROWS" :
+                       type == GGML_TYPE_BF16  ? "GGML_METAL_MMA_BF16_MIN_ROWS" : nullptr;
+    if (name) {
+        const char * value = std::getenv(name);
+        if (value) {
+            char * end = nullptr;
+            const long rows = std::strtol(value, &end, 10);
+            if (end != value && *end == '\0' && rows >= 1 && rows <= GGML_METAL_MMA_ROWS_MAX + 1) {
+                return rows;
+            }
+        }
+    }
     switch (type) {
         case GGML_TYPE_F32:
             return 6;

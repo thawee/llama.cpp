@@ -1,6 +1,7 @@
 #include "arg.h"
 #include "common.h"
 #include "download.h"
+#include "fit.h"
 #include "llama.h"
 #include "speculative.h"
 
@@ -180,6 +181,119 @@ static void test(void) {
         return res;
     };
 
+    {
+        common_params budget_params;
+        std::vector<std::string> args = {"binary_name", "--memory-budget", "14336"};
+        assert(common_params_parse(args.size(), list_str_to_char(args).data(), budget_params, LLAMA_EXAMPLE_SERVER));
+        assert(budget_params.memory_budget == size_t(14336) * 1024*1024);
+        budget_params.model.path = "/missing/parsed-memory-budget-test.gguf";
+        auto mparams = common_model_params_to_llama(budget_params);
+        auto cparams = common_context_params_to_llama(budget_params);
+        bool measured = false;
+        try {
+            common_fit_apply(budget_params, mparams, cparams);
+        } catch (const std::runtime_error & e) {
+            measured = std::string(e.what()) == "failed to load model";
+        }
+        assert(measured); // parser padding must not count as a tensor placement override
+        for (const auto & value : {"-1", "1x", "18446744073709551616", "17592186044416"}) {
+            args.back() = value;
+            assert(!common_params_parse(args.size(), list_str_to_char(args).data(), budget_params, LLAMA_EXAMPLE_SERVER));
+        }
+        args.back() = "0";
+        assert(common_params_parse(args.size(), list_str_to_char(args).data(), budget_params, LLAMA_EXAMPLE_SERVER));
+        assert(budget_params.memory_budget == 0);
+    }
+    {
+        std::vector<common_memory_breakdown_row> rows(3);
+        rows[0].kind = common_memory_breakdown_row::DEVICE;
+        rows[0].model = 100;
+        rows[0].context = 30;
+        rows[0].compute = 20;
+        rows[1].kind = common_memory_breakdown_row::HOST;
+        rows[1].model = 40;
+        rows[2].kind = common_memory_breakdown_row::BUFFER_TYPE;
+        rows[2].compute = 10;
+        assert(common_memory_fits_budget(rows, 250, 50));
+        assert(!common_memory_fits_budget(rows, 249, 50));
+        assert(!common_memory_fits_budget(rows, 100, 101));
+        rows[2].compute = SIZE_MAX;
+        assert(!common_memory_fits_budget(rows, SIZE_MAX, 0));
+    }
+    {
+        common_params budget_params;
+        budget_params.fit_params = false;
+        budget_params.model.path = "/missing/memory-budget-test.gguf";
+        auto mparams = common_model_params_to_llama(budget_params);
+        auto cparams = common_context_params_to_llama(budget_params);
+        common_fit_apply(budget_params, mparams, cparams);
+        assert(budget_params.cache_ram_mib == 8192);
+        assert(budget_params.n_ctx_checkpoints == 32);
+
+        auto expect_rejection = [&]() {
+            bool rejected = false;
+            try {
+                common_fit_apply(budget_params, mparams, cparams);
+            } catch (const std::runtime_error &) {
+                rejected = true;
+            }
+            assert(rejected);
+        };
+        budget_params.memory_budget = 1024*1024;
+        expect_rejection(); // failed measurement must reject even with --fit off
+        assert(budget_params.cache_ram_mib == 0);
+        assert(budget_params.n_ctx_checkpoints == 0);
+        budget_params.cache_ram_explicit = true;
+        budget_params.cache_ram_mib = -1;
+        expect_rejection();
+        assert(budget_params.cache_ram_mib == -1);
+        budget_params.cache_ram_mib = 2;
+        expect_rejection();
+        assert(budget_params.cache_ram_mib == 2);
+    }
+
+    {
+        common_params budget_params;
+        std::vector<std::string> ngram_args = { "binary", "-np", "1", "--spec-type", "ngram-simple",
+            "--spec-ngram-simple-size-n", "3", "--spec-ngram-simple-size-m", "3" };
+        assert(common_params_parse(ngram_args.size(), list_str_to_char(ngram_args).data(), budget_params, LLAMA_EXAMPLE_SERVER));
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 0);
+        budget_params.memory_budget = size_t(18432) * 1024*1024;
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 3);
+        budget_params.speculative.types.insert(budget_params.speculative.types.begin(), COMMON_SPECULATIVE_TYPE_NONE);
+        assert(budget_params.speculative.is_ngram_simple());
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 3);
+        budget_params.model.path = "/missing/memory-budget-ngram-test.gguf";
+        auto expect_ngram_rejection = [&]() {
+            auto mparams = common_model_params_to_llama(budget_params);
+            auto cparams = common_context_params_to_llama(budget_params);
+            bool rejected = false;
+            try {
+                common_fit_apply(budget_params, mparams, cparams);
+            } catch (const std::runtime_error & error) {
+                rejected = std::string(error.what()).find("requires one slot and") != std::string::npos;
+            }
+            assert(rejected);
+        };
+        budget_params.speculative.ngram_simple.size_m = 5;
+        expect_ngram_rejection();
+        budget_params.speculative.ngram_simple.size_m = 0;
+        expect_ngram_rejection();
+        budget_params.speculative.ngram_simple.size_m = 3;
+        budget_params.n_parallel = 2;
+        expect_ngram_rejection();
+        budget_params.n_parallel = 1;
+        budget_params.speculative.ngram_simple.size_n = 4;
+        expect_ngram_rejection();
+        budget_params.speculative.types = { COMMON_SPECULATIVE_TYPE_NONE };
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 0);
+        budget_params.speculative.types = { COMMON_SPECULATIVE_TYPE_NGRAM_MAP_K };
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 0);
+        budget_params.speculative.types.push_back(COMMON_SPECULATIVE_TYPE_NGRAM_SIMPLE);
+        assert(!budget_params.speculative.is_ngram_simple());
+        assert(common_context_params_to_llama(budget_params).n_rs_seq == 0);
+    }
+
     std::vector<std::string> argv;
 
     printf("test-arg-parser: test invalid usage\n\n");
@@ -260,6 +374,11 @@ static void test(void) {
     assert(params.n_batch == 9090);
 
     // --draft cannot be used outside llama-speculative
+    assert(!params.speculative.draft.adaptive);
+    argv = {"binary_name", "--spec-draft-adaptive"};
+    assert(common_params_parse(argv.size(), list_str_to_char(argv).data(), params, LLAMA_EXAMPLE_SPECULATIVE));
+    assert(params.speculative.draft.adaptive);
+
     argv = {"binary_name", "--spec-draft-n-max", "123"};
     assert(true == common_params_parse(argv.size(), list_str_to_char(argv).data(), params, LLAMA_EXAMPLE_SPECULATIVE));
     assert(params.speculative.draft.n_max == 123);

@@ -1,0 +1,6 @@
+{
+  "/Users/thawee.p/.pi/agent/models.json": "d95eb1d0bd19dc504ece829e39f5c23a428f634bb1665601732758378a6fbd70",
+  "/Users/thawee.p/.pi/agent/settings.json": "16723b654f451eb5be7c43768dc587623a367211f4a641142f54de8aa9c7a331",
+  "/Users/thawee.p/.local/bin/update-llama.sh": "743c10adc8ec9fd965c137a20920a793d46f6d9a3841f6955ba6f60535de2500",
+  "original_server_command": "/Users/thawee.p/Workspaces/Labs/llama.cpp/build-m3-local/bin/llama-server -m /Users/thawee.p/Workspaces/Labs/llama.cpp/models/local/qwen3.8-27b-iq2_m.gguf --offline --host 127.0.0.1 --port 8080 --memory-budget 18432 -np 1 -c 131072 -b 64 -ub 64 -fa on -ctk q8_0 -ctv q8_0 --reasoning off --spec-type ngram-simple --spec-ngram-simple-size-n 3 --spec-ngram-simple-size-m 3"
+}

@@ -2826,6 +2826,25 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         }
     ).set_env("LLAMA_ARG_MAIN_GPU"));
     add_opt(common_arg(
+        { "--memory-budget" }, "MiB",
+        "budget for estimated model, KV, compute and explicit prompt-cache buffers (0 = disabled); CPU or one Metal device only; not a process/RSS cap",
+        [](common_params & params, const std::string & value) {
+            if (value.empty() || value.find_first_not_of("0123456789") != std::string::npos) {
+                throw std::invalid_argument("--memory-budget requires a non-negative integer in MiB");
+            }
+            uint64_t mib;
+            try {
+                mib = std::stoull(value);
+            } catch (const std::out_of_range &) {
+                throw std::invalid_argument("--memory-budget is too large");
+            }
+            if (mib > SIZE_MAX / (1024*1024)) {
+                throw std::invalid_argument("--memory-budget is too large");
+            }
+            params.memory_budget = size_t(mib) * (1024*1024);
+        }
+    ).set_examples({LLAMA_EXAMPLE_CLI, LLAMA_EXAMPLE_SERVER}).set_env("LLAMA_ARG_MEMORY_BUDGET"));
+    add_opt(common_arg(
         { "-fit", "--fit" }, "[on|off]",
         string_format("whether to adjust unset arguments to fit in device memory ('on' or 'off', default: '%s')", params.fit_params ? "on" : "off"),
         [](common_params & params, const std::string & value) {
@@ -4131,6 +4150,13 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         }
     ).set_spec().set_examples({LLAMA_EXAMPLE_SPECULATIVE, LLAMA_EXAMPLE_SERVER, LLAMA_EXAMPLE_CLI}).set_env("LLAMA_ARG_SPEC_DRAFT_N_CPU_MOE"));
 
+    add_opt(common_arg(
+        {"--spec-draft-adaptive"},
+        "pause DFlash2 for 32 draft opportunities after 8 consecutive fully rejected drafts; retry periodically (default: off)",
+        [](common_params & params) {
+            params.speculative.draft.adaptive = true;
+        }
+    ).set_spec().set_examples({LLAMA_EXAMPLE_SPECULATIVE, LLAMA_EXAMPLE_SERVER, LLAMA_EXAMPLE_CLI}).set_env("LLAMA_ARG_SPEC_DRAFT_ADAPTIVE"));
     add_opt(common_arg(
         {"--spec-draft-n-max"}, "N",
         string_format("number of tokens to draft for speculative decoding (default: %d)", params.speculative.draft.n_max),

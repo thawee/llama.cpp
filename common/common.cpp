@@ -1267,6 +1267,10 @@ common_gguf_info common_get_gguf_info(const std::string & fname) {
 }
 
 void common_fit_apply(common_params & params, llama_model_params & mparams, llama_context_params & cparams) {
+    if (params.memory_budget != 0) {
+        common_fit_memory_budget(params, mparams, cparams);
+        return;
+    }
     if (!params.fit_params) {
         return;
     }
@@ -1309,7 +1313,15 @@ common_init_result::common_init_result(common_params & params, bool model_only) 
     auto mparams = common_model_params_to_llama(params);
     auto cparams = common_context_params_to_llama(params);
 
-    common_fit_apply(params, mparams, cparams);
+    try {
+        common_fit_apply(params, mparams, cparams);
+    } catch (const std::exception & e) {
+        if (params.memory_budget == 0) {
+            throw;
+        }
+        COM_ERR("memory budget validation failed: %s\n", e.what());
+        return;
+    }
 
     llama_model * model = llama_model_load_from_file(params.model.path.c_str(), mparams);
     if (model == NULL) {
@@ -1753,6 +1765,10 @@ struct llama_context_params common_context_params_to_llama(const common_params &
     cparams.n_ctx             = params.n_ctx;
     cparams.n_seq_max         = params.n_parallel;
     cparams.n_rs_seq          = params.speculative.need_n_rs_seq();
+    if (params.memory_budget != 0 && params.speculative.is_ngram_simple()) {
+        // Keep bounded n-gram rollback in buffers covered by the budget estimate.
+        cparams.n_rs_seq = params.speculative.ngram_simple.size_m;
+    }
     cparams.n_outputs_max     = std::max(params.n_outputs_max, 0);
     cparams.n_outputs_max_per_seq = std::max(params.n_outputs_max_per_seq, 0);
     cparams.n_batch           = params.n_batch;

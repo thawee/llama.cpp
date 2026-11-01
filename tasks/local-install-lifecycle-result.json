@@ -1,0 +1,9 @@
+{
+  "before": "pid=72237 owned=True ready=True",
+  "after": "pid=72881 owned=True ready=True",
+  "concurrent_starts": 3,
+  "foreign_port_refused": true,
+  "idempotent_stop": true,
+  "help_without_start": true,
+  "restart": true
+}

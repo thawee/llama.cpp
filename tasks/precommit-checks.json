@@ -1,0 +1,10 @@
+{
+  "arg-parser": {
+    "exit_code": 0,
+    "tail": "no conversion\n\n\nerror while handling environment variable \"LLAMA_ARG_LOAD_MODE\": invalid value\n\n\nwarn: LLAMA_ARG_MODEL environment variable is set, but will be overwritten by command line argument -m\n"
+  },
+  "speculative-backoff": {
+    "exit_code": 0,
+    "tail": ""
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "pi": {
+    "returncode": 0,
+    "elapsed_seconds": 12.36,
+    "marker_in_output": true,
+    "log": "tasks/local-install-pi.log"
+  },
+  "peak_rss_bytes": 17106239488,
+  "copilot": {
+    "returncode": 0,
+    "elapsed_seconds": 47.31,
+    "marker_in_output": true,
+    "log": "tasks/local-install-copilot.log"
+  }
+}

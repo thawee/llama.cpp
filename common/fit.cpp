@@ -169,7 +169,8 @@ std::vector<common_memory_breakdown_row> common_fit_measure(
         const llama_context_params * cparams,
         uint32_t * n_ctx_train,
         uint32_t * n_ctx,
-        ggml_log_level log_level) {
+        ggml_log_level log_level,
+        bool include_output) {
     common_fit_log_scope log_scope(log_level);
 
     llama_model_params mparams_copy = *mparams;
@@ -180,10 +181,22 @@ std::vector<common_memory_breakdown_row> common_fit_measure(
     if (!model) {
         throw std::runtime_error("failed to load model");
     }
+    if (include_output && (cparams->embeddings || cparams->n_samplers != 0 ||
+        llama_model_has_encoder(model.get()) || !llama_model_has_decoder(model.get()) ||
+        common_get_decision_type(model.get()) != COMMON_DECISION_TYPE_NONE)) {
+        throw std::runtime_error("--memory-budget requires a decoder-only model without embeddings or backend sampling");
+    }
 
     llama_context_ptr ctx(llama_init_from_model(model.get(), *cparams));
     if (!ctx) {
         throw std::runtime_error("failed to create llama_context from model");
+    }
+
+    if (include_output && cparams->n_rs_seq > 0 &&
+        (llama_model_n_swa(model.get()) > 0 ||
+         ((llama_model_is_recurrent(model.get()) || llama_model_is_hybrid(model.get())) &&
+          llama_n_rs_seq(ctx.get()) != cparams->n_rs_seq))) {
+        throw std::runtime_error("--memory-budget requires bounded recurrent rollback without SWA for ngram-simple");
     }
 
     if (n_ctx_train) {
@@ -193,7 +206,143 @@ std::vector<common_memory_breakdown_row> common_fit_measure(
         *n_ctx = llama_n_ctx(ctx.get());
     }
 
-    return common_memory_breakdown_rows(ctx.get());
+    auto rows = common_memory_breakdown_rows(ctx.get());
+    if (include_output) {
+        const size_t n_outputs = std::max(llama_n_batch(ctx.get()), llama_n_seq_max(ctx.get()));
+        const size_t n_vocab = llama_vocab_n_tokens(llama_model_get_vocab(model.get()));
+        if (n_outputs == 0 || n_vocab > SIZE_MAX / sizeof(float) / n_outputs) {
+            throw std::runtime_error("output buffer reservation exceeds addressable memory");
+        }
+        // The breakdown omits buf_output; reserve its largest batch-wide logits allocation.
+        common_memory_breakdown_row output;
+        output.kind = common_memory_breakdown_row::HOST;
+        output.name = "Host output";
+        output.context = n_vocab * n_outputs * sizeof(float);
+        rows.push_back(std::move(output));
+        if (cparams->n_rs_seq > 0) {
+            const size_t n_tokens = llama_n_ctx(ctx.get());
+            if (n_tokens > SIZE_MAX / (2 * sizeof(llama_token))) {
+                throw std::runtime_error("speculative prompt reservation exceeds addressable memory");
+            }
+            common_memory_breakdown_row prompt;
+            prompt.kind = common_memory_breakdown_row::HOST;
+            prompt.name = "Host speculative prompt";
+            prompt.context = n_tokens * 2 * sizeof(llama_token);
+            rows.push_back(std::move(prompt));
+        }
+    }
+    return rows;
+}
+
+bool common_memory_fits_budget(const std::vector<common_memory_breakdown_row> & rows, size_t budget, size_t reserved) {
+    if (reserved > budget) {
+        return false;
+    }
+    size_t remaining = budget - reserved;
+    for (const auto & row : rows) {
+        for (size_t bytes : {row.model, row.context, row.compute}) {
+            if (bytes > remaining) {
+                return false;
+            }
+            remaining -= bytes;
+        }
+    }
+    return true;
+}
+
+void common_fit_memory_budget(common_params & params, llama_model_params & mparams, llama_context_params & cparams) {
+    if (params.sampling.backend_sampling) {
+        throw std::runtime_error("--memory-budget does not support backend sampling");
+    }
+    const bool ngram_simple = params.speculative.is_ngram_simple();
+    if (params.speculative.has_dft() || params.speculative.has_synth() || params.load_mtp ||
+        (!ngram_simple && std::any_of(params.speculative.types.begin(), params.speculative.types.end(),
+            [](common_speculative_type type) { return type != COMMON_SPECULATIVE_TYPE_NONE; })) ||
+        !params.mmproj.path.empty() || !params.lora_adapters.empty() || !params.control_vectors.empty() ||
+        (mparams.tensor_buft_overrides != nullptr && mparams.tensor_buft_overrides[0].pattern != nullptr)) {
+        throw std::runtime_error("--memory-budget supports only bounded ngram-simple speculation and no multimodal models, adapters or tensor placement overrides");
+    }
+    if (ngram_simple && (params.n_parallel != 1 || params.speculative.ngram_simple.size_m < 1 ||
+        params.speculative.ngram_simple.size_m > 4 || params.speculative.ngram_simple.size_n < 1 ||
+        params.speculative.ngram_simple.size_n > params.speculative.ngram_simple.size_m ||
+        cparams.n_rs_seq != params.speculative.ngram_simple.size_m)) {
+        throw std::runtime_error("--memory-budget ngram-simple requires one slot and 1 <= size-n <= size-m <= 4");
+    }
+    if (!params.cache_ram_explicit) {
+        params.cache_ram_mib = 0;
+    }
+    if (params.n_ctx_checkpoints != 0) {
+        COM_WRN("%s", "--memory-budget disables context checkpoints because their allocations are not included in the estimate\n");
+        params.n_ctx_checkpoints = 0;
+    }
+    if (params.cache_ram_mib < 0 || uint64_t(params.cache_ram_mib) > SIZE_MAX / (1024*1024)) {
+        throw std::runtime_error("--memory-budget requires a finite --cache-ram reservation");
+    }
+    const size_t reserved = size_t(params.cache_ram_mib) * (1024*1024);
+    if (reserved >= params.memory_budget) {
+        throw std::runtime_error("--cache-ram leaves no memory within --memory-budget for inference buffers");
+    }
+
+    const ggml_log_level log_level = params.verbosity >= LOG_LEVEL_DEBUG ? GGML_LOG_LEVEL_DEBUG : GGML_LOG_LEVEL_ERROR;
+    uint32_t n_ctx_train = 0;
+    uint32_t n_ctx = 0;
+    auto measure = [&]() {
+        auto rows = common_fit_measure(params.model.path.c_str(), &mparams, &cparams, &n_ctx_train, &n_ctx, log_level, true);
+        size_t devices = 0;
+        for (const auto & row : rows) {
+            if (row.kind == common_memory_breakdown_row::DEVICE) {
+                ++devices;
+                auto dev = ggml_backend_dev_by_name(row.name.c_str());
+                if (!dev || std::string(ggml_backend_reg_name(ggml_backend_dev_backend_reg(dev))) != "MTL") {
+                    throw std::runtime_error("--memory-budget supports only CPU or one Metal device");
+                }
+            }
+        }
+        if (devices > 1) {
+            throw std::runtime_error("--memory-budget does not support multiple devices");
+        }
+        return common_memory_fits_budget(rows, params.memory_budget, reserved);
+    };
+
+    const bool n_ctx_auto = params.fit_params && cparams.n_ctx == 0;
+    const uint32_t n_streams = cparams.kv_unified ? 1 : std::max<uint32_t>(1, cparams.n_seq_max);
+    bool fits = measure();
+    if (n_ctx_auto) {
+        cparams.n_ctx = uint32_t(std::min<uint64_t>(uint64_t(n_ctx_train) * n_streams, UINT32_MAX));
+        if (cparams.n_ctx != n_ctx) {
+            fits = measure();
+        }
+    }
+    if (!fits) {
+        if (!n_ctx_auto) {
+            throw std::runtime_error("estimated inference buffers exceed --memory-budget; reduce context, batch size or model size");
+        }
+        const uint64_t minimum = std::min<uint64_t>(
+            uint64_t(uint32_t(params.fit_params_min_ctx)) * n_streams, uint64_t(n_ctx_train) * n_streams);
+        uint32_t upper = n_ctx;
+        if (minimum == 0 || minimum > upper) {
+            throw std::runtime_error("--memory-budget cannot reduce context within the requested --fit-ctx minimum");
+        }
+        cparams.n_ctx = uint32_t(minimum);
+        if (!measure()) {
+            throw std::runtime_error("estimated inference buffers exceed --memory-budget even at --fit-ctx; use a smaller model or batch size");
+        }
+        uint32_t lower = uint32_t(minimum);
+        while (upper - lower > 1) {
+            cparams.n_ctx = lower + (upper - lower) / 2;
+            if (measure()) {
+                lower = cparams.n_ctx;
+            } else {
+                upper = cparams.n_ctx;
+            }
+        }
+        cparams.n_ctx = lower;
+        if (!measure()) {
+            throw std::runtime_error("final inference buffer estimate exceeds --memory-budget");
+        }
+    }
+    LOG_INF("%s: estimated inference buffers and cache fit in %zu MiB at context %u (not a process/RSS cap)\n",
+        __func__, params.memory_budget / (1024*1024), n_ctx);
 }
 
 common_memory_reports common_measure_memory(common_params & params) {

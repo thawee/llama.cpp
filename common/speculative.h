@@ -5,6 +5,37 @@
 
 struct common_speculative;
 
+struct common_speculative_backoff {
+    bool should_draft() {
+        pending = false;
+        if (remaining > 0) {
+            --remaining;
+            return false;
+        }
+        pending = true;
+        return true;
+    }
+
+    void accept(uint16_t n_accepted) {
+        // Some callers report zero acceptance even when no draft was produced.
+        if (!pending) {
+            return;
+        }
+        pending = false;
+        if (n_accepted > 0) {
+            misses = 0;
+        } else if (++misses >= 8) {
+            misses = 8;
+            remaining = 32;
+        }
+    }
+
+private:
+    int32_t misses = 0;
+    int32_t remaining = 0;
+    bool pending = false;
+};
+
 // comma separated list the provided types
 std::string common_speculative_type_name_str(const std::vector<enum common_speculative_type> & types);
 

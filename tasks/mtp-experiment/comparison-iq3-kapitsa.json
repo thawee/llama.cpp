@@ -1,0 +1,71 @@
+{
+  "llama_result": "tasks/mtp-experiment/results-65536-mtp5-q8_0-limit22-iq3-kapitsa.json",
+  "kapitsa_result": "/Users/thawee.p/.local/bin/tasks/adaptive-mtp-20261031/benchmark-results.json",
+  "kapitsa_result_sha256": "af5de8a925465fe21a5776b107b7d34456dc3444f7e35aea764e90ef704dfe4d",
+  "rows": [
+    {
+      "case": "short_prose",
+      "llama_tok_s": 7.301793020608042,
+      "kapitsa_median_tok_s": 12.64306627628427,
+      "kapitsa_range_tok_s": [
+        12.621230237810549,
+        12.668355780770769
+      ],
+      "kapitsa_samples": 5,
+      "exact_output_matches": 0,
+      "prompt_tokens": 39,
+      "cached_tokens": 0,
+      "generated_tokens": 96,
+      "llama_wall_s": 14.166555708972737,
+      "kapitsa_median_wall_s": 8.08733683405444
+    },
+    {
+      "case": "short_code",
+      "llama_tok_s": 14.16617519979899,
+      "kapitsa_median_tok_s": 23.047064531780688,
+      "kapitsa_range_tok_s": [
+        22.602902688555794,
+        23.114355231143552
+      ],
+      "kapitsa_samples": 5,
+      "exact_output_matches": 5,
+      "prompt_tokens": 43,
+      "cached_tokens": 0,
+      "generated_tokens": 96,
+      "llama_wall_s": 7.820477750035934,
+      "kapitsa_median_wall_s": 4.797864417079836
+    },
+    {
+      "case": "long_prose",
+      "llama_tok_s": 8.006870063079807,
+      "kapitsa_median_tok_s": 12.569462820852078,
+      "kapitsa_range_tok_s": [
+        12.283423842772175,
+        12.654855468229652
+      ],
+      "kapitsa_samples": 5,
+      "exact_output_matches": 0,
+      "prompt_tokens": 4606,
+      "cached_tokens": 0,
+      "generated_tokens": 96,
+      "llama_wall_s": 79.3626645830227,
+      "kapitsa_median_wall_s": 35.11092245799955
+    },
+    {
+      "case": "long_code",
+      "llama_tok_s": 10.535462088139676,
+      "kapitsa_median_tok_s": 17.00375872561303,
+      "kapitsa_range_tok_s": [
+        16.979445933869528,
+        17.19768283852281
+      ],
+      "kapitsa_samples": 5,
+      "exact_output_matches": 5,
+      "prompt_tokens": 4610,
+      "cached_tokens": 4567,
+      "generated_tokens": 96,
+      "llama_wall_s": 10.13015558407642,
+      "kapitsa_median_wall_s": 6.297050583991222
+    }
+  ]
+}

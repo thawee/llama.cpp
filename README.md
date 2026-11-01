@@ -17,6 +17,43 @@
 
 </div>
 
+## Local M3 Pro project: goals and results
+
+This private fork targets local, private general tasks and coding assistance on an Apple M3 Pro with 36 GB unified memory. Production uses the selected DavidAU Qwen 27B IQ3_M MTP model with only `output.weight` requantized to Q8_0. The original IQ2_M model remains available for rollback.
+
+The active profile is 131072 context tokens, native MTP depth 5, Q8_0 target/draft KV caches, batch and microbatch 64, five CPU threads and full Metal offload. It serves `qwen3.8-27b-local` at `http://127.0.0.1:8000/v1` through `llama-local`, Pi and Copilot. Short tests sampled 21.127 GB peak RSS; this is not a memory cap. Full occupied-128K performance remains unverified.
+
+| Goal | Verified result |
+| --- | --- |
+| Keep the selected 27B model | IQ3_M weights with a Q8_0 output head run through Metal. All other 865 tensors were preserved; the original IQ2_M remains available. |
+| 128K context | Server exposes 131072 tokens in one slot. Full-128K occupied-context quality, speed, and peak memory remain unverified. |
+| About 18-20 GB memory; up to 22 GB for experiments | CPU-thread trials sampled 17.102 GB peak RSS; the experimental IQ3 Q8-head 128K screen peaked at 21.127 GB. The default launcher uses an 18432 MiB inference estimate budget, which is not a process memory cap. |
+| At least 25 generated tokens/sec; preferably above 50 | Not achieved. Best IQ3 Q8-head short code screen reached 17.56 tokens/sec. The earlier IQ2 coding baseline was a median 9.336 across five 128-token trials; these are different workloads. |
+| Faster generation without a separate draft model | Native MTP depth 5 is enabled using the model's embedded draft head. The older IQ2 profile used bounded ngram speculation. |
+| Safe performance experiments | The tested Metal integer-sign optimization was 3.23% slower and was reverted. No experimental kernel or profiler is installed. |
+| Earlier IQ2 native MTP experiment | Depth 5 at 128K with Q8 draft cache: 8.643-11.424 tokens/sec, 19.920 GB peak sampled RSS. Short prompts only; no demonstrated speed improvement. See the [MTP screen](tasks/mtp-experiment/report.md). |
+| IQ3 comparison at 64K | Native MTP depth 5 measured 7.30-14.17 tokens/sec, 20.238 GB peak sampled RSS. Saved Kapitsa was faster on all four matched workloads. See the [IQ3 comparison](tasks/mtp-experiment/report-iq3-kapitsa.md). |
+| Production IQ3 with Q8 output head | Head-only requantization reached 9.51 tokens/sec prose and 17.56 code at configured 128K, with 21.127 GB peak sampled RSS. A fixed 128-token general-thinking screen reached 15.66 tokens/sec, including reasoning and truncating before the final answer. Single trials; full occupied 128K and general quality remain unverified. See the [optimization screen](tasks/mtp-experiment/report-fast-optimization.md). |
+| M3 CPU threads | Five performance cores plus six efficiency cores. Five-thread default retained: eleven generation threads were 1.3% slower; eleven batch threads changed prefill by only 0.1%. See the [CPU thread experiment](tasks/cpu-core-report.md). |
+| Local coding clients | Installed commands start one shared server on demand. Earlier IQ2 Pi and GitHub Copilot CLI file-read checks passed at about 17.11 GB peak RSS. The promoted IQ3 API and completed-response smoke check passed; client alias and endpoint are unchanged. |
+
+The [22 GB longer-prompt screen](tasks/mtp-experiment/report-22gb-long.md) measured 8.76 tokens/sec at 3018 input tokens and 7.87 at 12118, with 19.879 GB peak sampled RSS and normal memory pressure. Full occupied 128K remains unverified.
+
+ANE acceleration is not enabled. The native Splash screen on these exact weights did not meet the throughput target; it does not establish a general ranking of engines. See the [memory-budget and runtime measurements](docs/memory-budget.md), [Metal experiment](tasks/metal-decode-optimization.md), and [exact-model Splash screen](tasks/splash-exact-native-report.md) for methods and limitations.
+
+The default serves general thinking at `http://127.0.0.1:8000/v1`, with temperature 1.0, top-p 0.95, top-k 20, min-p 0, presence penalty 0 and repetition penalty 1.0. The coding/thread measurements above used the earlier non-thinking configuration; the MTP screen used general thinking.
+
+For installation under `~/.local/bin`, on-demand startup, Pi, and GitHub Copilot CLI, see [local installation](docs/local-install.md).
+
+After installing:
+
+```sh
+llama-pi             # Start or reuse the local server, then open Pi
+llama-copilot        # Start or reuse it, then open Copilot offline
+llama-local status   # Check the shared server
+llama-local stop     # Release its memory when finished
+```
+
 ## Quick start
 
 A few options to get `llama.cpp` installed on your machine:

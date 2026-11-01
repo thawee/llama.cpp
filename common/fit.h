@@ -74,15 +74,22 @@ std::vector<common_memory_breakdown_row> common_memory_breakdown_rows(const llam
 
 // load model + context with no_alloc and return the memory breakdown, params are used as-is
 // n_ctx_train and n_ctx are optional outputs; throws on failure
+// include_output reserves worst-case host logits for decoder-only inference without backend sampling
 std::vector<common_memory_breakdown_row> common_fit_measure(
                          const char * path_model,
            const llama_model_params * mparams,
          const llama_context_params * cparams,
                            uint32_t * n_ctx_train,
                            uint32_t * n_ctx,
-                     ggml_log_level   log_level);
+                     ggml_log_level   log_level,
+                               bool   include_output = false);
 
 struct common_params;
+
+bool common_memory_fits_budget(const std::vector<common_memory_breakdown_row> & rows, size_t budget, size_t reserved);
+
+// Fit only unset context size to the total estimated CPU/Metal buffer budget; throws on failure.
+void common_fit_memory_budget(common_params & params, llama_model_params & mparams, llama_context_params & cparams);
 
 // measure min and max without allocating, params may be modified as with --fit; throws on failure
 common_memory_reports common_measure_memory(common_params & params);
